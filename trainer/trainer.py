@@ -118,6 +118,15 @@ class Trainer(BaseTrainer):
             self.lr_scheduler.step()
         return log
 
+    @torch.no_grad()
+    def _log_image_examples(self, sample_size=5):
+        A, B = next(iter(self.valid_data_loader))
+        A, B = A[:sample_size].to(self.device), B[:sample_size].to(self.device)
+        genB = self.generator(A)
+        images = torch.cat([B, genB], dim=-1).cpu().detach().numpy()
+        images = np.transpose(images, axes=[0, 2, 3, 1])
+        self.writer.add_images("image examples", images)
+
     def _valid_epoch(self, epoch):
         """
         Validate after training an epoch
@@ -128,8 +137,9 @@ class Trainer(BaseTrainer):
         self.generator.eval()
         self.discriminator.eval()
         self.valid_metrics.reset()
+        self._log_image_examples()
         with torch.no_grad():
-            for batch_idx, (data, target) in enumerate(self.valid_data_loader):
+            for batch_idx, (A, B) in enumerate(self.valid_data_loader):
                 A, B = A.to(self.device), B.to(self.device)
                 fakeB = self.generator(A)
 
