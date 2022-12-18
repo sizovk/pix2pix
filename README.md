@@ -2,8 +2,6 @@
 
 This repository contains implementation of pix2pix GAN model, which have been described in https://arxiv.org/abs/1611.07004
 
-The model was trained on Edges2Handbags dataset.
-
 ### Example
 ![](example.jpg)
 
