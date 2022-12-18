@@ -36,17 +36,17 @@ class Trainer(BaseTrainer):
     def _loss_discriminator(self, A, B, fakeB):
         fake_AB = torch.cat((A, fakeB), dim=1)
         pred_fake = self.discriminator(fake_AB.detach())
-        loss_D_fake = self.criterion(pred_fake, torch.tensor(0.0).expand_as(pred_fake))
+        loss_D_fake = self.criterion(pred_fake, torch.tensor(0.0).expand_as(pred_fake).to(self.device))
         real_AB = torch.cat((A, B), dim=1)
         pred_real = self.discriminator(real_AB)
-        loss_D_real = self.criterion(pred_real, torch.tensor(1.0).expand_as(pred_real))
+        loss_D_real = self.criterion(pred_real, torch.tensor(1.0).expand_as(pred_real).to(self.device))
         loss_D = (loss_D_fake + loss_D_real) * 0.5
         return loss_D
 
     def _loss_generator(self, A, B, fakeB):
         fake_AB = torch.cat((A, fakeB), dim=1)
         pred_fake = self.discriminator(fake_AB)
-        loss_G = self.criterion(pred_fake, torch.tensor(1.0).expand_as(pred_fake))
+        loss_G = self.criterion(pred_fake, torch.tensor(1.0).expand_as(pred_fake).to(self.device))
         if self.l1_criterion:
             loss_l1 = self.l1_criterion(fakeB, B) * self.l1_coef
             loss_G += loss_l1
