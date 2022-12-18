@@ -1,0 +1,72 @@
+{
+    "name": "pix2pix",
+    "n_gpu": 1,
+    "generator": {
+        "type": "UnetGenerator",
+        "args": {
+            "input_nc": 1, 
+            "output_nc": 3, 
+            "n_layers": 8
+        }
+    },
+    "discriminator": {
+        "type": "PatchGANDiscriminator",
+        "args": {
+            "input_nc": 4
+        }
+    },
+    "dataset": {
+        "type": "Edges2Shoes",
+        "args": {}
+    },
+    "train_dataloader": {
+        "batch_size": 4,
+        "shuffle": true,
+        "num_workers": 4
+    },
+    "val_dataloader": {
+        "batch_size": 4,
+        "shuffle": false,
+        "num_workers": 4
+    },
+    "loss": {
+        "type": "BCEWithLogitsLoss",
+        "args": {}
+    },
+    "l1_loss": {
+        "type": "L1Loss",
+        "coef": 100.0,
+        "args": {}
+    },
+    "generator_optimizer": {
+        "type": "Adam",
+        "args":{
+            "lr": 0.0002,
+            "betas": [0.5, 0.999]
+        }
+    },
+    "discriminator_optimizer": {
+        "type": "Adam",
+        "args":{
+            "lr": 0.0002,
+            "betas": [0.5, 0.999]
+        }
+    },
+    "generator_lr_scheduler": null,
+    "discriminator_lr_scheduler": null,
+    "trainer": {
+        "epochs": 100,
+
+        "save_dir": "saved/",
+        "save_period": 5,
+        "verbosity": 2,
+        "len_epoch": 5000,
+        "log_step": 10,
+        
+        "monitor": "min val_loss",
+        "early_stop": 10,
+
+        "visualize": "wandb",
+        "wandb_project": "pix2pix"
+    }
+}

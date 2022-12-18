@@ -9,6 +9,7 @@ from utils.parse_config import ConfigParser
 from dataset import Edges2Handbags
 from torch.utils.data import DataLoader
 import model as module_arch
+import dataset as module_data
 
 # fix random seeds for reproducibility
 SEED = 123
@@ -21,8 +22,8 @@ def main(config):
     logger = config.get_logger('train')
 
     # setup data_loader instances
-    train_dataset = Edges2Handbags(mode="train")
-    valid_dataset = Edges2Handbags(mode="val")
+    train_dataset = config.init_obj('dataset', module_data, mode="train")
+    valid_dataset = config.init_obj('dataset', module_data, mode="val")
     data_loader = DataLoader(dataset=train_dataset, **config["train_dataloader"])
     valid_data_loader = DataLoader(dataset=valid_dataset, **config["val_dataloader"])
 

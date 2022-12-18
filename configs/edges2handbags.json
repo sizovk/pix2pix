@@ -15,6 +15,10 @@
             "input_nc": 4
         }
     },
+    "dataset": {
+        "type": "Edges2Handbags",
+        "args": {}
+    },
     "train_dataloader": {
         "batch_size": 4,
         "shuffle": true,

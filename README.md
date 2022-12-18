@@ -18,5 +18,6 @@ bash setup_data.sh
 
 ### Train model
 ```bash
-python train.py -c configs/default.json
+python train.py -c configs/edges2handbags.json
+python train.py -c configs/edges2shoes.json
 ```
