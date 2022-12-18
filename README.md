@@ -7,7 +7,7 @@ The model was trained on Edges2Handbags dataset.
 ### Example
 ![](example.jpg)
 
-## [Training report](https://wandb.ai/k_sizov/pix2pix/reports/pix2pix-training-report--VmlldzozMTc1ODU4)
+## [Training report](https://wandb.ai/k_sizov/pix2pix/reports/pix2pix-training-report--VmlldzozMTc1ODU4?accessToken=4z4arhche1oa0f9ntzrkl8qmbbaht3xokvbp76gr697lfds9jxiawvfbnxul7chl)
 
 ## Reproduce results
 ### Setup data
