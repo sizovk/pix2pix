@@ -1,5 +1,5 @@
 {
-    "name": "experiment_name",
+    "name": "pix2pix",
     "n_gpu": 1,
     "generator": {
         "type": "UnetGenerator",
@@ -16,12 +16,12 @@
         }
     },
     "train_dataloader": {
-        "batch_size": 128,
+        "batch_size": 4,
         "shuffle": true,
         "num_workers": 4
     },
     "val_dataloader": {
-        "batch_size": 128,
+        "batch_size": 4,
         "shuffle": false,
         "num_workers": 4
     },
@@ -54,15 +54,15 @@
         "epochs": 100,
 
         "save_dir": "saved/",
-        "save_period": 1,
+        "save_period": 5,
         "verbosity": 2,
-        "len_epoch": 100,
+        "len_epoch": 5000,
         "log_step": 10,
         
         "monitor": "min val_loss",
         "early_stop": 10,
 
         "visualize": "wandb",
-        "wandb_project": "kek_project"
+        "wandb_project": "pix2pix"
     }
 }

@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from base import BaseTrainer
+from torchmetrics.image.fid import FrechetInceptionDistance
 from utils import inf_loop, MetricTracker
 
 
@@ -26,20 +27,19 @@ class Trainer(BaseTrainer):
         self.do_validation = self.valid_data_loader is not None
         self.generator_lr_scheduler = generator_lr_scheduler
         self.discriminator_lr_scheduler = discriminator_lr_scheduler
+        self.fid = FrechetInceptionDistance(feature=64, reset_real_features=False).to(device)
 
         self.train_metrics = MetricTracker('discriminator_loss', 'generator_loss', 'discriminator_grad_norm', 'generator_grad_norm')
         self.valid_metrics = MetricTracker('discriminator_loss', 'generator_loss')
 
 
     def _loss_discriminator(self, A, B, fakeB):
-        fake_AB = torch.cat((A, fakeB), dim=1)  # we use conditional GANs; we need to feed both input and output to the discriminator
-        pred_fake = self.discriminator(fake_AB.detach()) # Fake; stop backprop to the generator by detaching fake_B
+        fake_AB = torch.cat((A, fakeB), dim=1)
+        pred_fake = self.discriminator(fake_AB.detach())
         loss_D_fake = self.criterion(pred_fake, torch.tensor(0.0).expand_as(pred_fake))
-        # Real
         real_AB = torch.cat((A, B), dim=1)
         pred_real = self.discriminator(real_AB)
         loss_D_real = self.criterion(pred_real, torch.tensor(1.0).expand_as(pred_real))
-        # combine loss and calculate gradients
         loss_D = (loss_D_fake + loss_D_real) * 0.5
         return loss_D
 
@@ -47,11 +47,9 @@ class Trainer(BaseTrainer):
         fake_AB = torch.cat((A, fakeB), dim=1)
         pred_fake = self.discriminator(fake_AB)
         loss_G = self.criterion(pred_fake, torch.tensor(1.0).expand_as(pred_fake))
-        # Second, G(A) = B
         if self.l1_criterion:
             loss_l1 = self.l1_criterion(fakeB, B) * self.l1_coef
             loss_G += loss_l1
-        # combine loss and calculate gradients
         return loss_G
 
     def _train_epoch(self, epoch):
@@ -114,8 +112,10 @@ class Trainer(BaseTrainer):
             val_log = self._valid_epoch(epoch)
             log.update(**{'val_'+k : v for k, v in val_log.items()})
 
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
+        if self.discriminator_lr_scheduler is not None:
+            self.discriminator_lr_scheduler.step()
+        if self.generator_lr_scheduler is not None:
+            self.generator_lr_scheduler.step()
         return log
 
     @torch.no_grad()
@@ -138,10 +138,13 @@ class Trainer(BaseTrainer):
         self.discriminator.eval()
         self.valid_metrics.reset()
         self._log_image_examples()
+        self.fid.reset()
         with torch.no_grad():
             for batch_idx, (A, B) in enumerate(self.valid_data_loader):
                 A, B = A.to(self.device), B.to(self.device)
                 fakeB = self.generator(A)
+                self.fid.update((B * 255).byte(), real=True)
+                self.fid.update((fakeB * 255).byte(), real=False)
 
                 discriminator_loss = self._loss_discriminator(A, B, fakeB)
                 generator_loss = self._loss_generator(A, B, fakeB)
@@ -151,6 +154,7 @@ class Trainer(BaseTrainer):
     
         if self.writer is not None:
             self.writer.set_step(epoch * self.len_epoch, mode="val")
+            self.writer.add_scalar("fid", self.fid.compute().item())
             for metric_name in self.valid_metrics.keys():
                 self.writer.add_scalar(f"{metric_name}", self.valid_metrics.avg(metric_name))
 
